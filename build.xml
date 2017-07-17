@@ -1,0 +1,41 @@
+<project name="Sample usage of Salesforce Ant tasks" default="deployFields" basedir="." xmlns:sf="antlib:com.salesforce">
+
+    <property file="build.properties"/>
+    <property environment="env"/>
+
+    <condition property="sf.sessionId" value=""> <not> <isset property="sf.sessionId"/> </not> </condition>
+    <condition property="sf.dfusername" value=""> <not> <isset property="sf.dfusername"/> </not> </condition>
+    <condition property="sf.dfpassword" value=""> <not> <isset property="sf.dfpassword"/> </not> </condition>
+
+    <taskdef resource="com/salesforce/antlib.xml" uri="antlib:com.salesforce">
+        <classpath>
+            <pathelement location="../ant-salesforce.jar" />        	
+        </classpath>
+    </taskdef>
+
+
+    <!-- Deploy the unpackaged set of metadata retrieved with retrieveUnpackaged and run tests in this organization's namespace only-->
+    <target name="deployFields">
+        <input message="Username:" addproperty="sf.username" defaultvalue="${sf.dfusername}"/>
+        <input message="Password:" addproperty="sf.password" defaultvalue="${sf.dfpassword}">
+            <handler classname="org.apache.tools.ant.input.SecureInputHandler" />
+        </input>
+        <input message="Object Name:" addproperty="sf.objectName" defaultvalue="${sf.dfObjectName}" />
+        <input message="Object Name Plural:" addproperty="sf.objectPluralName" defaultvalue="${sf.dfObjectPluralName}" />
+        <input message="Object ApiName:" addproperty="sf.objectApiName" defaultvalue="${sf.dfObjectApiName}" />
+        <delete dir="src" />
+        <mkdir dir="src" />
+        <copy todir="src/" overwrite="true">
+            <fileset dir="src2/"/>
+            <filterset>
+                <filter token="objApiName" value="${sf.objectApiName}"/>
+                <filter token="objPluralName" value="${sf.objectPluralName}"/>
+                <filter token="objName" value="${sf.objectName}"/>
+            </filterset>
+        </copy>
+        <move file="src/objects/test.object" tofile="src/objects/${sf.objectApiName}.object"/>
+        <sf:deploy username="${sf.username}" password="${sf.password}" sessionId="${sf.sessionId}" serverurl="${sf.serverurl}" maxPoll="${sf.maxPoll}" deployRoot="src" rollbackOnError="true"/>
+    </target>
+
+   
+</project>
